@@ -11,18 +11,39 @@ function $(id) {
 }
 
 // Entry point: wait for SMART launch
+// Entry point: try SMART launch; if no state param, fall back to dev mode
 FHIR.oauth2
   .ready()
   .then(function (client) {
     $("status").textContent =
-      "Connected to FHIR server: " + client.state.serverUrl;
+      "Connected to FHIR server (SMART): " + client.state.serverUrl;
 
     loadPatient(client);
     loadPotassiumLabs(client);
   })
   .catch(function (error) {
     console.error(error);
-    $("status").textContent = "Launch error: " + (error.message || error);
+
+    // If there is no SMART 'state' parameter, run in standalone dev mode
+    if (String(error).includes("No 'state' parameter")) {
+      $("status").textContent =
+        "No SMART launch detected – using sandbox dev mode with a test patient.";
+
+      // Public SMART R3 sandbox
+      const serverUrl = "https://r3.smarthealthit.org";
+
+      // Hard-coded test patient ID from the sandbox
+      // (you can swap this for any valid patient id on r3.smarthealthit.org)
+      const patientId = "smart-1288992";
+
+      const client = FHIR.client(serverUrl);
+      client.patient = { id: patientId };
+
+      loadPatient(client);
+      loadPotassiumLabs(client);
+    } else {
+      $("status").textContent = "Launch error: " + (error.message || error);
+    }
   });
 
 /**
