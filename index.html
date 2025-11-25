@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SMART FHIR – Patient Lab Dashboard</title>
+
+  <!-- Page styling -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- SMART on FHIR JS client -->
+  <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
+
+  <!-- Highcharts for charting -->
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Patient Lab Dashboard</h1>
+    <p>SMART-on-FHIR app (Potassium trend – LOINC 2823-3)</p>
+  </header>
+
+  <main>
+    <!-- Status / error area -->
+    <section class="card">
+      <h2>Connection Status</h2>
+      <p id="status">Launching via SMART...</p>
+    </section>
+
+    <!-- Patient summary -->
+    <section class="card">
+      <h2>Patient Info</h2>
+      <div id="patient-info">
+        <p>Waiting for patient context...</p>
+      </div>
+    </section>
+
+    <!-- Chart + table side-by-side -->
+    <section class="layout">
+      <div class="card">
+        <h2>Potassium Trend</h2>
+        <div id="lab-chart" class="chart-container"></div>
+      </div>
+
+      <div class="card">
+        <h2>Potassium Results</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Value</th>
+              <th>Unit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="lab-table-body">
+            <!-- Filled by script.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>Built for SMART demo launcher • FHIR R3 sandbox</small>
+  </footer>
+
+  <!-- Main application script -->
+  <script src="script.js"></script>
+</body>
+</html>
