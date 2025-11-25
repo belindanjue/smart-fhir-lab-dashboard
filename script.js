@@ -1,56 +1,73 @@
 /* script.js
- * SMART-on-FHIR Patient Lab Dashboard
- * - Uses SMART launch via fhirclient.js
+ * SMART-on-FHIR Cholesterol Lab Dashboard
+ * - Uses SMART launch via fhirclient.js when available
+ * - Falls back to dev mode with a fixed patient on the public R3 server
  * - Reads Patient + Total Cholesterol Observations (LOINC 2093-3)
  * - Displays as table + Highcharts line chart
  */
 
-// Utility: simple DOM helper
 function $(id) {
   return document.getElementById(id);
 }
 
-// Entry point: try SMART launch; if no state param, fall back to dev mode
+// ---------- Config for dev fallback ----------
+const DEV_SERVER_URL = "https://r3.smarthealthit.org";
+// You can change this to another patient ID that has cholesterol labs
+const DEV_PATIENT_ID = "smart-1288992";
+
+// ---------- Entry point ----------
 FHIR.oauth2
   .ready()
   .then(function (client) {
     $("status").textContent =
       "Connected to FHIR server (SMART): " + client.state.serverUrl;
 
-    loadPatient(client);
-    loadCholesterolLabs(client);
+    const patientId = client.patient && client.patient.id
+      ? client.patient.id
+      : null;
+
+    loadPatient(client, patientId);
+    loadCholesterolLabs(client, patientId);
   })
   .catch(function (error) {
-    console.error(error);
+    console.error("SMART launch error:", error);
 
     // If there is no SMART 'state' parameter, run in standalone dev mode
     if (String(error).includes("No 'state' parameter")) {
       $("status").textContent =
         "No SMART launch detected – using sandbox dev mode with a test patient.";
 
-      // Public SMART R3 sandbox server
-      const serverUrl = "https://r3.smarthealthit.org";
+      const client = FHIR.client(DEV_SERVER_URL);
+      const patientId = DEV_PATIENT_ID;
 
-      // Hard-coded test patient ID from the sandbox
-      // You can change this to any valid patient ID on the R3 server.
-      const patientId = "smart-1288992";
-
-      const client = FHIR.client(serverUrl);
-      client.patient = { id: patientId };
-
-      loadPatient(client);
-      loadCholesterolLabs(client);
+      loadPatient(client, patientId);
+      loadCholesterolLabs(client, patientId);
     } else {
       $("status").textContent = "Launch error: " + (error.message || error);
     }
   });
 
 /**
- * Load and display basic patient info
+ * Load and display basic patient info.
+ * If patientId is provided, fetch via plain FHIR `Patient/{id}`.
+ * If not, try to use `client.patient.read()` (SMART context).
  */
-function loadPatient(client) {
-  client.patient
-    .read()
+function loadPatient(client, patientId) {
+  let patientPromise;
+
+  if (patientId) {
+    // Standalone or explicit patient ID
+    patientPromise = client.request("Patient/" + encodeURIComponent(patientId));
+  } else if (client.patient && typeof client.patient.read === "function") {
+    // SMART app with patient context
+    patientPromise = client.patient.read();
+  } else {
+    $("patient-info").innerHTML =
+      "<p class='error'>No patient context available.</p>";
+    return;
+  }
+
+  patientPromise
     .then(function (patient) {
       const name = formatHumanName(patient.name && patient.name[0]);
       const gender = patient.gender || "unknown";
@@ -75,7 +92,7 @@ function loadPatient(client) {
       `;
     })
     .catch(function (err) {
-      console.error(err);
+      console.error("Error loading patient:", err);
       $("patient-info").innerHTML =
         "<p class='error'>Could not load patient details.</p>";
     });
@@ -83,15 +100,28 @@ function loadPatient(client) {
 
 /**
  * Load Total Cholesterol Observations for the current patient
- * LOINC: 2093-3 (Cholesterol [Moles/volume] in Serum or Plasma)
+ * LOINC: 2093-3 (Total Cholesterol)
  */
-function loadCholesterolLabs(client) {
+function loadCholesterolLabs(client, patientId) {
+  const pid =
+    patientId ||
+    (client.patient && client.patient.id ? client.patient.id : null);
+
+  if (!pid) {
+    $("status").textContent +=
+      " • No patient ID available for cholesterol query.";
+    $("lab-table-body").innerHTML =
+      "<tr><td colspan='4'>No patient ID available.</td></tr>";
+    renderChart([], []);
+    return;
+  }
+
   const code = "http://loinc.org|2093-3"; // Total cholesterol
 
   client
     .request(
       "Observation?patient=" +
-        encodeURIComponent(client.patient.id) +
+        encodeURIComponent(pid) +
         "&code=" +
         encodeURIComponent(code) +
         "&_sort=date",
@@ -141,7 +171,7 @@ function loadCholesterolLabs(client) {
       renderChart(dates, values);
     })
     .catch(function (err) {
-      console.error(err);
+      console.error("Error loading cholesterol labs:", err);
       $("status").textContent +=
         " • Error loading cholesterol labs: " + (err.message || err);
       $("lab-table-body").innerHTML =
@@ -210,7 +240,6 @@ function capitalize(s) {
 }
 
 function getObservationDate(obs) {
-  // Prefer effectiveDateTime, fall back to issued
   if (obs.effectiveDateTime) {
     return obs.effectiveDateTime.substring(0, 10);
   }
@@ -219,6 +248,3 @@ function getObservationDate(obs) {
   }
   return "";
 }
-
-
-     
