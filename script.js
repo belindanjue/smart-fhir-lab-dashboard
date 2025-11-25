@@ -1,7 +1,7 @@
 /* script.js
  * SMART-on-FHIR Patient Lab Dashboard
  * - Uses SMART launch via fhirclient.js
- * - Reads Patient + Potassium Observations (LOINC 2823-3)
+ * - Reads Patient + Total Cholesterol Observations (LOINC 2093-3)
  * - Displays as table + Highcharts line chart
  */
 
@@ -10,7 +10,6 @@ function $(id) {
   return document.getElementById(id);
 }
 
-// Entry point: wait for SMART launch
 // Entry point: try SMART launch; if no state param, fall back to dev mode
 FHIR.oauth2
   .ready()
@@ -19,7 +18,7 @@ FHIR.oauth2
       "Connected to FHIR server (SMART): " + client.state.serverUrl;
 
     loadPatient(client);
-    loadPotassiumLabs(client);
+    loadCholesterolLabs(client);
   })
   .catch(function (error) {
     console.error(error);
@@ -29,18 +28,18 @@ FHIR.oauth2
       $("status").textContent =
         "No SMART launch detected – using sandbox dev mode with a test patient.";
 
-      // Public SMART R3 sandbox
+      // Public SMART R3 sandbox server
       const serverUrl = "https://r3.smarthealthit.org";
 
       // Hard-coded test patient ID from the sandbox
-      // (you can swap this for any valid patient id on r3.smarthealthit.org)
+      // You can change this to any valid patient ID on the R3 server.
       const patientId = "smart-1288992";
 
       const client = FHIR.client(serverUrl);
       client.patient = { id: patientId };
 
       loadPatient(client);
-      loadPotassiumLabs(client);
+      loadCholesterolLabs(client);
     } else {
       $("status").textContent = "Launch error: " + (error.message || error);
     }
@@ -83,13 +82,12 @@ function loadPatient(client) {
 }
 
 /**
- * Load potassium Observations for the current patient
- * LOINC: 2823-3 (Potassium [Moles/volume] in Serum or Plasma)
+ * Load Total Cholesterol Observations for the current patient
+ * LOINC: 2093-3 (Cholesterol [Moles/volume] in Serum or Plasma)
  */
-function loadPotassiumLabs(client) {
-  const code = "http://loinc.org|2823-3";
+function loadCholesterolLabs(client) {
+  const code = "http://loinc.org|2093-3"; // Total cholesterol
 
-  // Use flat paging to get a simple array of Observation resources
   client
     .request(
       "Observation?patient=" +
@@ -105,14 +103,13 @@ function loadPotassiumLabs(client) {
     .then(function (observations) {
       if (!observations || observations.length === 0) {
         $("status").textContent +=
-          " • No potassium results found for this patient.";
+          " • No cholesterol results found for this patient.";
         $("lab-table-body").innerHTML =
-          "<tr><td colspan='4'>No potassium results.</td></tr>";
+          "<tr><td colspan='4'>No cholesterol results.</td></tr>";
         renderChart([], []);
         return;
       }
 
-      // Parse observations into dates + values
       const dates = [];
       const values = [];
 
@@ -146,7 +143,7 @@ function loadPotassiumLabs(client) {
     .catch(function (err) {
       console.error(err);
       $("status").textContent +=
-        " • Error loading potassium labs: " + (err.message || err);
+        " • Error loading cholesterol labs: " + (err.message || err);
       $("lab-table-body").innerHTML =
         "<tr><td colspan='4'>Error loading labs.</td></tr>";
       renderChart([], []);
@@ -154,15 +151,15 @@ function loadPotassiumLabs(client) {
 }
 
 /**
- * Render a simple line chart using Highcharts
+ * Render a line chart using Highcharts
  */
 function renderChart(dates, values) {
-  if (dates.length === 0 || values.length === 0) {
-    // Show an empty chart placeholder
+  if (!dates || dates.length === 0 || !values || values.length === 0) {
     Highcharts.chart("lab-chart", {
       title: { text: "No data to display" },
       xAxis: { categories: [] },
       series: [],
+      credits: { enabled: false },
     });
     return;
   }
@@ -172,14 +169,14 @@ function renderChart(dates, values) {
       type: "line",
     },
     title: {
-      text: "Serum Potassium Over Time",
+      text: "Total Cholesterol Over Time",
     },
     xAxis: {
       categories: dates,
       title: { text: "Date" },
     },
     yAxis: {
-      title: { text: "Potassium (mmol/L)" },
+      title: { text: "Cholesterol (e.g., mg/dL)" },
     },
     tooltip: {
       shared: true,
@@ -187,7 +184,7 @@ function renderChart(dates, values) {
     },
     series: [
       {
-        name: "Potassium",
+        name: "Total Cholesterol",
         data: values,
       },
     ],
@@ -222,3 +219,6 @@ function getObservationDate(obs) {
   }
   return "";
 }
+
+
+     
