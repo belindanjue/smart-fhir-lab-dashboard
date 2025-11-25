@@ -1,0 +1,125 @@
+/* Basic reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: #f3f5f9;
+  color: #1f2933;
+  line-height: 1.5;
+  padding: 1.5rem;
+}
+
+header {
+  max-width: 1100px;
+  margin: 0 auto 1.5rem auto;
+  text-align: left;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 0.25rem;
+}
+
+header p {
+  color: #6b7280;
+}
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.card h2 {
+  font-size: 1.2rem;
+  margin-bottom: 0.7rem;
+}
+
+/* Layout for chart + table */
+.layout {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr;
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Chart container */
+.chart-container {
+  width: 100%;
+  min-height: 320px;
+}
+
+/* Patient info list */
+.patient-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.patient-grid dt {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.patient-grid dd {
+  margin-top: 0.15rem;
+  color: #111827;
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+thead {
+  background: #eff3fb;
+}
+
+th,
+td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+th {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+tbody tr:nth-child(even) {
+  background: #fafbff;
+}
+
+/* Status / error messages */
+#error,
+.error {
+  color: #b91c1c;
+}
+
+footer {
+  max-width: 1100px;
+  margin: 1.5rem auto 0 auto;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
