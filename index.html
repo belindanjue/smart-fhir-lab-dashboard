@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SMART FHIR – Patient Lab Dashboard</title>
+  <title>SMART FHIR – Cholesterol Lab Dashboard</title>
 
   <!-- Page styling -->
   <link rel="stylesheet" href="styles.css" />
@@ -13,10 +13,11 @@
   <!-- Highcharts for charting -->
   <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
+
 <body>
   <header>
-    <h1>Patient Lab Dashboard</h1>
-    <p>SMART-on-FHIR app (Potassium trend – LOINC 2823-3)</p>
+    <h1>Cholesterol Lab Dashboard</h1>
+    <p>SMART-on-FHIR app (Total Cholesterol – LOINC 2093-3)</p>
   </header>
 
   <main>
@@ -37,12 +38,12 @@
     <!-- Chart + table side-by-side -->
     <section class="layout">
       <div class="card">
-        <h2>Potassium Trend</h2>
+        <h2>Total Cholesterol Trend</h2>
         <div id="lab-chart" class="chart-container"></div>
       </div>
 
       <div class="card">
-        <h2>Potassium Results</h2>
+        <h2>Total Cholesterol Results</h2>
         <table>
           <thead>
             <tr>
@@ -64,7 +65,7 @@
     <small>Built for SMART demo launcher • FHIR R3 sandbox</small>
   </footer>
 
-  <!-- Main application script -->
+  <!-- Main application script (your revised cholesterol script) -->
   <script src="script.js"></script>
 </body>
 </html>
